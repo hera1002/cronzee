@@ -774,13 +774,26 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
                 const chartEl = document.getElementById('history-chart-large');
                 chartEl.innerHTML = '';
                 const displayRecords = records.slice(0, 2000).reverse();
+                const tooltip = document.getElementById('chart-tooltip');
                 displayRecords.forEach(r => {
                     const bar = document.createElement('div');
                     bar.style.cssText = 'flex:1;min-width:1px;max-width:3px;border-radius:1px 1px 0 0;cursor:pointer;';
                     bar.style.background = r.status === 'healthy' ? '#10b981' : r.status === 'unhealthy' ? '#ef4444' : '#9ca3af';
                     bar.style.height = '100%';
                     const respTime = r.response_time ? formatDuration(r.response_time / 1000000) : '-';
-                    bar.title = r.status + ' | ' + respTime + ' | ' + new Date(r.timestamp).toLocaleString();
+                    bar.onmouseenter = function(e) {
+                        tooltip.innerHTML = '<strong>' + r.status + '</strong><br>' + respTime + '<br>' + new Date(r.timestamp).toLocaleString();
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = (e.clientX + 10) + 'px';
+                        tooltip.style.top = (e.clientY - 60) + 'px';
+                    };
+                    bar.onmousemove = function(e) {
+                        tooltip.style.left = (e.clientX + 10) + 'px';
+                        tooltip.style.top = (e.clientY - 60) + 'px';
+                    };
+                    bar.onmouseleave = function() {
+                        tooltip.style.display = 'none';
+                    };
                     chartEl.appendChild(bar);
                 });
                 
