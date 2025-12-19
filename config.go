@@ -37,6 +37,8 @@ type Endpoint struct {
 // Alerting represents alerting configuration
 type Alerting struct {
 	Enabled      bool              `yaml:"enabled"`
+	TeamsEnabled bool              `yaml:"teams_enabled"`
+	TeamsWebhook string            `yaml:"teams_webhook"`
 	WebhookURL   string            `yaml:"webhook_url"`
 	EmailEnabled bool              `yaml:"email_enabled"`
 	EmailConfig  EmailConfig       `yaml:"email_config"`

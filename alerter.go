@@ -49,6 +49,10 @@ func (a *Alerter) SendFailureAlert(endpoint Endpoint, state *EndpointState) {
 	subject := fmt.Sprintf("[CRONZEE] Alert: %s is DOWN", endpoint.Name)
 
 	a.sendAlert(subject, message, "failure", endpoint, state)
+	// 🔔 NEW: Teams alert
+	if a.config.TeamsEnabled && a.config.TeamsWebhook != "" {
+		a.sendTeamsAlert(endpoint,state)
+	}
 }
 
 // SendRecoveryAlert sends an alert when an endpoint recovers
@@ -258,3 +262,51 @@ func (a *Alerter) sendEmailAlert(subject, message string) {
 
 	log.Printf("Email alert sent successfully to: %s", to)
 }
+
+//send alerts to teams 
+
+func (a *Alerter) sendTeamsAlert(endpoint Endpoint, state *EndpointState) {
+
+	if !a.config.TeamsEnabled || a.config.TeamsWebhook == "" {
+		return
+	}
+	loc, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		loc = time.FixedZone("IST", 5*60*60+30*60)
+	}
+
+	istTime := state.LastCheck.In(loc)
+
+	payload := map[string]interface{}{
+		"service":        endpoint.Name,
+		"url":            endpoint.URL,
+		"status":         string(state.Status),
+		"failures":       state.ConsecutiveFailures,
+		"response_time":  state.ResponseTime.String(),
+		"timestamp":      istTime.Format("02 Jan 2006, 03:04:05 PM"),
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Teams alert marshal error: %v", err)
+		return
+	}
+
+	resp, err := http.Post(
+		a.config.TeamsWebhook,
+		"application/json",
+		bytes.NewBuffer(jsonData),
+	)
+	if err != nil {
+		log.Printf("Teams alert failed: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		log.Printf("Teams alert sent for %s", endpoint.Name)
+	} else {
+		log.Printf("Teams webhook returned status %d", resp.StatusCode)
+	}
+}
+
