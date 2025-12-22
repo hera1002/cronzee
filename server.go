@@ -265,7 +265,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
             <div class="loading pulse">Loading endpoint status...</div>
         </div>
         
-        <div class="refresh-info">Auto-refreshing every 5 seconds • Last updated: <span id="last-update">-</span></div>
+        <div class="refresh-info">Auto-refreshing every 30 seconds • Last updated: <span id="last-update">-</span></div>
     </div>
 
     <!-- Add Endpoint Modal -->
@@ -368,9 +368,10 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
                 <div><strong>Avg Response:</strong> <span id="hist-avg">-</span></div>
             </div>
             <div style="margin-bottom:10px;font-weight:600;color:#374151;">Status Timeline (last 2000 checks)</div>
-            <div id="history-chart-large" style="height:80px;display:flex;align-items:flex-end;gap:1px;background:#f9fafb;border-radius:6px;padding:8px;margin-bottom:20px;"></div>
+            <div id="history-chart-large" style="height:80px;display:flex;align-items:flex-end;gap:1px;background:#f9fafb;border-radius:6px;padding:8px;margin-bottom:5px;"></div>
+            <div id="timeline-x-axis" style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;padding:0 8px;margin-bottom:20px;"></div>
             <div style="margin-bottom:10px;font-weight:600;color:#374151;">Response Time Chart (ms)</div>
-            <div style="position:relative;height:150px;background:#f9fafb;border-radius:6px;padding:10px;margin-bottom:10px;">
+            <div style="position:relative;height:180px;background:#f9fafb;border-radius:6px;padding:10px;margin-bottom:10px;">
                 <canvas id="response-chart" style="width:100%;height:100%;"></canvas>
             </div>
             <div id="chart-tooltip" style="display:none;position:absolute;background:#1f2937;color:white;padding:6px 10px;border-radius:4px;font-size:12px;pointer-events:none;z-index:100;"></div>
@@ -797,6 +798,20 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
                     chartEl.appendChild(bar);
                 });
                 
+                // Add X-axis labels for Status Timeline
+                const timelineXAxis = document.getElementById('timeline-x-axis');
+                timelineXAxis.innerHTML = '';
+                if (displayRecords.length > 0) {
+                    const numLabels = 5;
+                    for (let i = 0; i < numLabels; i++) {
+                        const idx = Math.floor(i * (displayRecords.length - 1) / (numLabels - 1));
+                        const record = displayRecords[idx];
+                        const label = document.createElement('span');
+                        label.textContent = new Date(record.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                        timelineXAxis.appendChild(label);
+                    }
+                }
+                
                 // Response time line chart
                 const canvas = document.getElementById('response-chart');
                 const ctx = canvas.getContext('2d');
@@ -826,6 +841,21 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
                     ctx.textAlign = 'right';
                     const val = Math.round(maxTime - (maxTime / 4) * i);
                     ctx.fillText(val + 'ms', padding - 5, y + 3);
+                }
+                
+                // Draw X-axis labels for Response Time chart
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '10px sans-serif';
+                ctx.textAlign = 'center';
+                if (displayRecords.length > 0) {
+                    const numXLabels = 5;
+                    for (let i = 0; i < numXLabels; i++) {
+                        const idx = Math.floor(i * (displayRecords.length - 1) / (numXLabels - 1));
+                        const record = displayRecords[idx];
+                        const x = padding + (idx / (displayRecords.length - 1)) * chartWidth;
+                        const timeStr = new Date(record.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                        ctx.fillText(timeStr, x, chartHeight + 25);
+                    }
                 }
                 
                 // Draw line chart
@@ -891,7 +921,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
         }
 
         updateDashboard();
-        setInterval(updateDashboard, 5000);
+        setInterval(updateDashboard, 30000);
     </script>
 </body>
 </html>`
