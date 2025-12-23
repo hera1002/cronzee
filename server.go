@@ -57,7 +57,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronzee Health Monitor</title>
+    <title>Site Watch</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -248,7 +248,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
     <div class="container">
         <div class="header">
             <div>
-                <h1>Cronzee Health Monitor</h1>
+                <h1>Site Watch</h1>
                 <p>Real-time application health monitoring</p>
             </div>
             <button class="btn btn-primary" onclick="openAddModal()">+ Add Endpoint</button>

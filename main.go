@@ -30,7 +30,7 @@ func main() {
 	// Note: Endpoints are loaded only from database, not from config.yaml
 	// Use the web UI to add/remove endpoints
 
-	log.Printf("Starting Cronzee Health Monitor...")
+	log.Printf("Starting Site Watch...")
 
 	// Initialize monitor with database
 	monitor := NewMonitor(config, db)
@@ -53,7 +53,7 @@ func main() {
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 	<-sigChan
 
-	log.Println("Shutting down Cronzee Health Monitor...")
+	log.Println("Shutting down Site Watch...")
 	monitor.Stop()
 	time.Sleep(1 * time.Second)
 }
